@@ -16,6 +16,12 @@ void imread(char *path, float **out_data, int *out_h, int *out_w, int *out_c) {
     // see stb_image.h: 170
     int h, w, c;
     unsigned char *buffer = stbi_load(path, &w, &h, &c, 0);
+    if (buffer == NULL) {
+    printf("imread failed: Could not load image at %s\n", path);
+    *out_data = NULL;
+    *out_h = 0; *out_w = 0; *out_c = 0; // 防止传入垃圾值
+    return;
+}
 
     float *data = fmalloc(h * w * c);
     for (int i = 0; i < h * w * c; ++i)
@@ -38,6 +44,9 @@ void imwrite(char *path, float *data, int h, int w, int c) {
         else
             buffer[i] = (unsigned char)data[i];
     }
-    stbi_write_jpg(path, w, h, c, buffer, 0);
+    stbi_write_jpg(path, w, h, c, buffer, 100);
+    printf("imwrite 调试: h=%d, w=%d, c=%d, buffer[0]=%d\n", h, w, c, buffer[0]);
     free(buffer);
 }
+
+

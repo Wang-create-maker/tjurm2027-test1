@@ -104,6 +104,7 @@ void test_strstr() {
 void test_hist_eq() {
     std::cout << "开始测试函数 << hist_eq >> ..." << std::endl;
     char *path = "../images/hist_eq/input.jpg";
+    
     float *img;
     int h, w, c;
 
@@ -111,7 +112,7 @@ void test_hist_eq() {
     std::cout << "读取图片images/hist_eq/input.jpg，高度为" << h << "，高度为" << w
               << "，通道数为" << c
               << std::endl;
-
+    
     hist_eq(img, h, w);
 
     char *out_path = "../images/hist_eq/output.jpg";
@@ -168,5 +169,6 @@ int main() {
     test_resize();
     std::cout << "开始测试函数 << hist_eq >> ..." << std::endl;
     test_hist_eq();
+    
     return 0;
 }

@@ -1,13 +1,22 @@
 #include "tests.h"
+#include <cstdio>    
+#include <cstddef>
+#include <cmath>
+#include <algorithm>
 
 // 练习1，实现库函数strlen
-int my_strlen(char *str) {
+int my_strlen(char* str) {
     /**
      * 统计字符串的长度，太简单了。
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    int count = 0;
+    while (*str != '\0'){
+        count++;
+        str++;
+    }
+    return count;
 }
 
 
@@ -19,6 +28,17 @@ void my_strcat(char *str_1, char *str_2) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    char* p = str_1;
+    while (*p != '\0'){
+        p++;        
+    }
+    while (*str_2 != '\0'){
+        *p = *str_2;
+        p++;
+        str_2++;
+    }
+    *p = '\0';                      /*src 的结束符 '\0' 并没有被复制到 dest 中,要手动增加结束符*/
+
 }
 
 
@@ -31,9 +51,28 @@ char* my_strstr(char *s, char *p) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    if (*p == '\0')
+    {
+    return s;
+    }
+
+    while(*s != '\0')
+    {
+        char *s_n = s;
+        char *p_n = p;/*利用临时指针检索，原指针留着返回地址*/
+
+        while(*s_n == *p_n && *s_n != '\0' && *p_n != '\0')/*有自加空间（指针不是\0）才循环；临时指针相同才自加*/
+        {
+            s_n++;
+            p_n++;
+        }
+        if(*p_n == '\0'){
+            return s;
+        }
+        s++;
+    }
     return 0;
 }
-
 
 /**
  * ================================= 背景知识 ==================================
@@ -58,7 +97,7 @@ char* my_strstr(char *s, char *p) {
  *   };
  *   就可以看做是一个高为2，宽为3的灰度图片。实际上图片的宽高都比较大，比如说500。
  *
- *   彩色图片也可以看作是由像素构成的二维数组，举个例子，一张高为2，宽为3彩色图片在
+ *   彩色图片也可以看作是由像素构成的二维数组，举个例子，，宽为3彩一张高为2色图片在
  * 内存中的存储为：
  *
  *   低地址 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - >>> 高地址
@@ -97,9 +136,20 @@ void rgb2gray(float *in, float *out, int h, int w) {
 
     // IMPLEMENT YOUR CODE HERE
     // ...
+    for(int i = 0 ; i<h ; ++i)
+    {
+        for(int j = 0 ; j<w ; ++j)
+        {
+            int idx = (i*w + j)*3;
+            float r = in[idx];
+            float g = in[idx+1];
+            float b = in[idx+2];
+            out[i*w + j] = 0.1140f * b  + 0.5870f * g + 0.2989f * r;
+        }
+    }
 }
 
-// 练习5，实现图像处理算法 resize：缩小或放大图像
+// 练习5， 图像
 void resize(float *in, float *out, int h, int w, int c, float scale) {
     /**
      * 图像处理知识：
@@ -195,10 +245,83 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
      *     3. 注意上面的方法中，四个邻居点的坐标可能会超出 src 的范围，
      *        所以需要对其进行边界检查
      */
+    
+    
+   
 
     int new_h = h * scale, new_w = w * scale;
     // IMPLEMENT YOUR CODE HERE
+    if (in == NULL || out == NULL) {
+        printf("Error: in or out pointer is NULL!\n");
+        return;
+    }
+ 
+    if (h <= 0 || w <= 0 || c <= 0) {
+        printf("Error: Invalid image dimensions! h=%d, w=%d, c=%d\n", h, w, c);
+        return; 
+    }
+   
+    if (scale <= 0) {
+        printf("Error: Invalid scale!\n");
+        return;
+    }
 
+    
+    
+
+    if (new_h <= 0 || new_w <= 0) {
+        printf("Error: Resized dimensions overflow!\n");
+        return;
+    }
+    
+    for(int y = 0;y < new_h; ++y)
+    {
+        for(int x = 0;x < new_w; ++x)
+        {
+            
+            float x0 = x/scale;
+            float y0 = y/scale;
+
+            int x1 = static_cast<int>(x0);
+            int y1 = static_cast<int>(y0);
+            int x2 = x1+1;
+            int y2 = y1+1;
+
+            if(x1<0) x1 = 0;
+            if(y1<0) y1 = 0;
+            if(x2>=w) x2 = w-1;
+            if(y2>=h) y2 = h-1;
+            if(x1>=w) x1 = w-1;
+            if(y1>=h) y1 = h-1;
+
+            float dx = x0 - 1.0f*x1;
+            float dy = y0 - 1.0f*y1;
+
+            if(dx<0) dx = 0;
+            if(dy<0) dy = 0;
+
+            float w1 = (1.0f - dx)*(1.0f - dy);
+            float w2 = dx*(1.0f - dy);
+            float w3 = dy*(1.0f - dx);
+            float w4 = dx*dy;
+
+
+            for(int k = 0; k < c; ++k)
+            {
+                
+                float p1 = in[(y1*w + x1)*c+k];
+                float p2 = in[(y1*w + x2)*c+k];
+                float p3 = in[(y2*w + x1)*c+k];
+                float p4 = in[(y2*w + x2)*c+k];
+
+                float v = p1 * w1 + p2 * w2 + p3 * w3 + p4 * w4;
+
+                out[(y*new_w+x)*c+k] = v;
+
+            }
+        }
+    }
+    printf("调试: out[0]=%f, out[1]=%f\n", out[0], out[1]);
 }
 
 
@@ -219,6 +342,65 @@ void hist_eq(float *in, int h, int w) {
      * (2) 灰度级个数为256，也就是{0, 1, 2, 3, ..., 255}
      * (3) 使用数组来实现灰度级 => 灰度级的映射
      */
+     // IMPLEMENT YOUR CODE HERE
+    int hist[256]= {0};
+    int cdf[256] = {0};
+    int map[256] = {0};
+    int MN = h*w;
+    
+    for(int i = 0; i < MN ;i++)
+    {
+        int v =  static_cast<int>(std::round(in[i]));//将float地址四舍五入后转为int
+        if(v < 0) v = 0;
+        if(v > 255) v = 255;
+        hist[v]++;//对应索引的值自加，完成各灰度值的数量统计
+    }
 
-    // IMPLEMENT YOUR CODE HERE
+   
+    cdf[0] = hist[0];//让cdf的第一项和hist一样，进行求和
+    for(int i = 1; i<256 ; i++)//从第二项开始赋值
+    {
+        cdf[i] = cdf[i - 1] + hist[i];//累加后将结果赋值给对应位置
+    }
+
+    //完成cdf数组创建后，进行“过度拉伸”预防措施
+    int cdf_min = 0;
+    for(int i = 0;i < 256;i++)
+    {
+        if(cdf[i]>0){
+            cdf_min = cdf[i];
+            break; 
+        }
+    }
+
+    //计算每个灰度级的映射值
+    for(int i = 0;i<256;i++)
+    {
+        if(MN > cdf_min)
+        {
+            double eq_v = 255.0 * (cdf[i] - cdf_min)/(MN - cdf_min);
+            map[i] = static_cast<int>(std::round(eq_v));//将映射值四舍五入后转为int，存入map对应的位置
+        }
+        else
+        {
+            map[i] = i;//??
+        }
+        //边界保护
+        if(map[i]<0)  map[i] = 0;
+        if(map[i]>255)  map[i] = 255;
+    }
+    
+    //根据映射表替换原图像像素值
+    for(int i = 0;i < MN;i++){
+        int v = static_cast<int>(std::round(in[i]));//在原图中找到位置
+        //边界保护
+        if (v < 0) v = 0;
+        if (v > 255) v = 255;
+
+        in[i] =  static_cast<float>(map[v]);//将map中的值以float形式赋值给in指针
+    }
+
+
+
+
 }
