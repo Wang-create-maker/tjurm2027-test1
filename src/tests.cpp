@@ -61,15 +61,15 @@ char* my_strstr(char *s, char *p) {
         char *s_n = s;
         char *p_n = p;/*利用临时指针检索，原指针留着返回地址*/
 
-        while(*s_n == *p_n && *s_n != '\0' && *p_n != '\0')/*有自加空间（指针不是\0）才循环；临时指针相同才自加*/
+        while(*s_n == *p_n && *s_n != '\0' && *p_n != '\0')//自加空间（指针不是\0）才循环；临时指针相同才自加
         {
             s_n++;
-            p_n++;
+            p_n++;//直到两个指针不相同或者有一个指针到达\0，跳出循环
         }
-        if(*p_n == '\0'){
+        if(*p_n == '\0'){/*当p在s中找到后，返回s地址*/ 
             return s;
         }
-        s++;
+        s++;/*检索起点后移，准备下一轮检索，若在s中找到p，返回s自加后的地址*/
     }
     return 0;
 }
@@ -136,11 +136,11 @@ void rgb2gray(float *in, float *out, int h, int w) {
 
     // IMPLEMENT YOUR CODE HERE
     // ...
-    for(int i = 0 ; i<h ; ++i)
+    for(int i = 0 ; i<h ; ++i)//列循环
     {
-        for(int j = 0 ; j<w ; ++j)
+        for(int j = 0 ; j<w ; ++j)//行循环
         {
-            int idx = (i*w + j)*3;
+            int idx = (i*w + j)*3;//计算出每个像素的地址，乘3是因为每个像素有3个通道
             float r = in[idx];
             float g = in[idx+1];
             float b = in[idx+2];
@@ -280,30 +280,30 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
         {
             
             float x0 = x/scale;
-            float y0 = y/scale;
+            float y0 = y/scale;//求出原图位置
 
             int x1 = static_cast<int>(x0);
-            int y1 = static_cast<int>(y0);
+            int y1 = static_cast<int>(y0);//向下取整，定位左上角点
             int x2 = x1+1;
-            int y2 = y1+1;
+            int y2 = y1+1;//设好两组x，y定位四个点
 
             if(x1<0) x1 = 0;
             if(y1<0) y1 = 0;
             if(x2>=w) x2 = w-1;
             if(y2>=h) y2 = h-1;
             if(x1>=w) x1 = w-1;
-            if(y1>=h) y1 = h-1;
+            if(y1>=h) y1 = h-1;//防止出界
 
             float dx = x0 - 1.0f*x1;
-            float dy = y0 - 1.0f*y1;
+            float dy = y0 - 1.0f*y1;//float数值计算
 
             if(dx<0) dx = 0;
-            if(dy<0) dy = 0;
+            if(dy<0) dy = 0;//防止点的相对位置改变
 
             float w1 = (1.0f - dx)*(1.0f - dy);
             float w2 = dx*(1.0f - dy);
             float w3 = dy*(1.0f - dx);
-            float w4 = dx*dy;
+            float w4 = dx*dy;//公式的四个系数，简化终表达式的书写
 
 
             for(int k = 0; k < c; ++k)
@@ -312,11 +312,11 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
                 float p1 = in[(y1*w + x1)*c+k];
                 float p2 = in[(y1*w + x2)*c+k];
                 float p3 = in[(y2*w + x1)*c+k];
-                float p4 = in[(y2*w + x2)*c+k];
+                float p4 = in[(y2*w + x2)*c+k];//逐个通道计算四个点的值
 
-                float v = p1 * w1 + p2 * w2 + p3 * w3 + p4 * w4;
+                float v = p1 * w1 + p2 * w2 + p3 * w3 + p4 * w4;//加权求值
 
-                out[(y*new_w+x)*c+k] = v;
+                out[(y*new_w+x)*c+k] = v;//写入
 
             }
         }
@@ -363,12 +363,12 @@ void hist_eq(float *in, int h, int w) {
         cdf[i] = cdf[i - 1] + hist[i];//累加后将结果赋值给对应位置
     }
 
-    //完成cdf数组创建后，进行“过度拉伸”预防措施
+    //完成cdf数组创建后，进行“过度拉伸”预防措施（全黑，全白）
     int cdf_min = 0;
     for(int i = 0;i < 256;i++)
     {
         if(cdf[i]>0){
-            cdf_min = cdf[i];
+            cdf_min = cdf[i];//找到cdf中第一个大于0的值，赋值给cdf_min
             break; 
         }
     }
@@ -378,12 +378,12 @@ void hist_eq(float *in, int h, int w) {
     {
         if(MN > cdf_min)
         {
-            double eq_v = 255.0 * (cdf[i] - cdf_min)/(MN - cdf_min);
+            double eq_v = 255.0 * (cdf[i] - cdf_min)/(MN - cdf_min);//计算映射值，“平移”防止过度拉伸
             map[i] = static_cast<int>(std::round(eq_v));//将映射值四舍五入后转为int，存入map对应的位置
         }
         else
         {
-            map[i] = i;//??
+            map[i] = i;//保留原灰度级映射值
         }
         //边界保护
         if(map[i]<0)  map[i] = 0;
